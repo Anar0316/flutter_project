@@ -1,29 +1,21 @@
 import 'package:flutter/foundation.dart';
+import 'service_locator.dart';
+import 'storage_service.dart';
 
 class CounterViewModel extends ChangeNotifier {
   int _counter = 0;
   int get counter => _counter;
 
-  WebApi _webApi = serviceLocator<WebApi>(); //  <-- service
+  StorageService _storageService = getIt<StorageService>();
 
-  Future loadData() async { //                   <-- load initial data
-    _counter = await _webApi.fetchValue();
+  Future loadData() async {
+    _counter = await _storageService.getCounterValue();
     notifyListeners();
   }
 
   void increment() {
     _counter++;
+    _storageService.saveCounterValue(_counter);
     notifyListeners();
   }
-}
-
-// Fake service locator. Use GetIt in a real app.
-// Or inject the service in the view model constructor.
-WebApi serviceLocator<T>() {
-  return WebApi();
-}
-
-// Fake web api
-class WebApi {
-  Future<int> fetchValue() => Future.delayed(Duration(seconds: 2), () => 11);
 }
