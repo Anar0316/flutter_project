@@ -1,93 +1,78 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart';
 
-void main() {
-  runApp(MyApp());
-}
+void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: Scaffold(
-        body: BodyWidget(),
-      ),
+      home: MyHomePage(),
     );
   }
 }
 
-class BodyWidget extends StatefulWidget {
-  const BodyWidget({
-    Key key,
-  }) : super(key: key);
-
-  @override
-  _BodyWidgetState createState() => _BodyWidgetState();
-}
-
-class _BodyWidgetState extends State<BodyWidget> {
-  var myFontSize = 20.0;
-  @override
-  void initState() {
-    _getFontSize();
-    super.initState();
-  }
-
-  Future<void> _getFontSize() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    myFontSize = prefs.getDouble('UserFontSize') ?? 20.0;
-  }
-
+class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          "My wonderful app.",
-          style: TextStyle(fontSize: myFontSize),
-        ),
-        Row(
-          children: [
+    return Scaffold(
+      appBar: AppBar(title: Text('HTTP requests')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
             ElevatedButton(
-              onPressed: () {
-                setState(() async {
-                  myFontSize = 10.0;
-                  SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  prefs.setDouble('UserFontSize', myFontSize);
-                });
-              },
-              child: Text('Small'),
+              child: Text(
+                'GET',
+                style: TextStyle(fontSize: 20),
+              ),
+              onPressed: _makeGetRequest,
             ),
             ElevatedButton(
-              onPressed: () {
-                setState(() async {
-                  myFontSize = 20.0;
-                  SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  prefs.setDouble('UserFontSize', myFontSize);
-                });
-              },
-              child: Text('Medium'),
+              child: Text(
+                'POST',
+                style: TextStyle(fontSize: 20),
+              ),
+              onPressed: _makePostRequest,
             ),
             ElevatedButton(
-              onPressed: () {
-                setState(() async {
-                  myFontSize = 50.0;
-                  SharedPreferences prefs =
-                      await SharedPreferences.getInstance();
-                  prefs.setDouble('UserFontSize', myFontSize);
-                });
-              },
-              child: Text('Large'),
+              child: Text(
+                'PUT',
+                style: TextStyle(fontSize: 20),
+              ),
+              onPressed: _makePutRequest,
+            ),
+            ElevatedButton(
+              child: Text(
+                'DELETE',
+                style: TextStyle(fontSize: 20),
+              ),
+              onPressed: _makeDeleteRequest,
             ),
           ],
-        )
-      ],
+        ),
+      ),
     );
   }
+
+  // Button onPressed methods
+
+  void _makeGetRequest() async {
+    // make GET request
+    final url = Uri.parse('https://jsonplaceholder.typicode.com/posts');
+    Response response = await get(url);
+    // sample info available in response
+    int statusCode = response.statusCode;
+    Map<String, String> headers = response.headers;
+    String contentType = headers['content-type'];
+    String json = response.body;
+    print('Json $json');
+    // TODO convert json to object...
+  }
+
+  void _makePostRequest() async {}
+
+  void _makePutRequest() async {}
+
+  void _makeDeleteRequest() async {}
 }
