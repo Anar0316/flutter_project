@@ -1,78 +1,61 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
-
-void main() => runApp(MyApp());
+import 'package:firebase_core/firebase_core.dart';
+import 'dart:math';
+    
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
+  final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: MyHomePage(),
-    );
-  }
-}
-
-class MyHomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('HTTP requests')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ElevatedButton(
-              child: Text(
-                'GET',
-                style: TextStyle(fontSize: 20),
-              ),
-              onPressed: _makeGetRequest,
-            ),
-            ElevatedButton(
-              child: Text(
-                'POST',
-                style: TextStyle(fontSize: 20),
-              ),
-              onPressed: _makePostRequest,
-            ),
-            ElevatedButton(
-              child: Text(
-                'PUT',
-                style: TextStyle(fontSize: 20),
-              ),
-              onPressed: _makePutRequest,
-            ),
-            ElevatedButton(
-              child: Text(
-                'DELETE',
-                style: TextStyle(fontSize: 20),
-              ),
-              onPressed: _makeDeleteRequest,
-            ),
-          ],
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-      ),
+        home: FutureBuilder(
+          future: _fbApp,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              print('You haven an error! ${snapshot.error.toString()}');
+              return Text('Something went wrong');
+            } else if (snapshot.hasData) {
+              return MyHomePage(title: 'My Amazing counter App');
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
+        )
     );
   }
 
-  // Button onPressed methods
 
-  void _makeGetRequest() async {
-    // make GET request
-    final url = Uri.parse('https://jsonplaceholder.typicode.com/posts');
-    Response response = await get(url);
-    // sample info available in response
-    int statusCode = response.statusCode;
-    Map<String, String> headers = response.headers;
-    String contentType = headers['content-type'];
-    String json = response.body;
-    print('Json $json');
-    // TODO convert json to object...
+  class MyHomePage extends StatefulWidget {
+  MyHomePage({key key, this.title}) : super(key:key);
+
+  final String title;
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
   }
 
-  void _makePostRequest() async {}
+  class _MyHomePageState extends State<MyHomePage> {
+  int _counter = 0;
 
-  void _makePutRequest() async {}
+  void _incrementCounter(){
+  DatabaseReference _testRef = FirebaseDatabase.instance.reference().child("test");
+  _testRef.set("Hello world ${Random().nextInt(100)}");
+  setState(() {
+  _counter++;
+  });
+  }
 
-  void _makeDeleteRequest() async {}
+
 }
