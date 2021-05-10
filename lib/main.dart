@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_project/sign-in.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_project/authentication_servce.dart';
 
-import 'authentication_servce.dart';
-
-
+import 'home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,89 +16,35 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: AuthenticationWrapper());
+    return MultiProvider(
+      providers: [
+        Provider<AuthenticationService>(
+          create: (_) => AuthenticationService(FirebaseAuth.instance),
+        ),
+        StreamProvider(
+          create: (context) => context.read<AuthenticationService>().authStateChanges,
+        )
+      ],
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
+        home: AuthenticationWrapper(),
+      ),
+    );
   }
 }
 
 class AuthenticationWrapper extends StatelessWidget {
-  final _authService = AuthenticationService(FirebaseAuth.instance);
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User>(
-      stream: _authService.authStateChanges,
-      builder: (context, snapshot) {
-        final user = snapshot.data;
-        if (user == null) {
-          return SignInPage(authService: _authService);
-        } else {
-          return HomePage(
-            authService: _authService,
-          );
-        }
-      },
-    );
-  }
-}
+    final firebaseUser = context.watch<User>();
 
-class SignInPage extends StatelessWidget {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final AuthenticationService authService;
-
-  SignInPage({Key key, this.authService});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          TextField(
-            controller: emailController,
-            decoration: InputDecoration(
-              labelText: "Email",
-            ),
-          ),
-          TextField(
-            controller: passwordController,
-            decoration: InputDecoration(
-              labelText: "Password",
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              authService.signIn(
-                email: emailController.text,
-                password: passwordController.text,
-              );
-            },
-            child: Text('Sign in'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  final AuthenticationService authService;
-
-  HomePage({Key key, this.authService});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          children: [
-            Text('HOME'),
-            ElevatedButton(
-              onPressed: () {
-                authService.signOut();
-              },
-              child: Text('Log out'),
-            ),
-          ],
-        ),
-      ),
-    );
+    if (firebaseUser != null) {
+      return HomePage();
+    }
+    return SignInPage();
   }
 }
