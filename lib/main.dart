@@ -1,61 +1,103 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'dart:math';
-    
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'authentication_servce.dart';
+
+
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final Future<FirebaseApp> _fbApp = Firebase.initializeApp();
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(home: AuthenticationWrapper());
+  }
+}
+
+class AuthenticationWrapper extends StatelessWidget {
+  final _authService = AuthenticationService(FirebaseAuth.instance);
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User>(
+      stream: _authService.authStateChanges,
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        if (user == null) {
+          return SignInPage(authService: _authService);
+        } else {
+          return HomePage(
+            authService: _authService,
+          );
+        }
+      },
+    );
+  }
+}
+
+class SignInPage extends StatelessWidget {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final AuthenticationService authService;
+
+  SignInPage({Key key, this.authService});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        home: FutureBuilder(
-          future: _fbApp,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              print('You haven an error! ${snapshot.error.toString()}');
-              return Text('Something went wrong');
-            } else if (snapshot.hasData) {
-              return MyHomePage(title: 'My Amazing counter App');
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
+    return Scaffold(
+      body: Column(
+        children: [
+          TextField(
+            controller: emailController,
+            decoration: InputDecoration(
+              labelText: "Email",
+            ),
+          ),
+          TextField(
+            controller: passwordController,
+            decoration: InputDecoration(
+              labelText: "Password",
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              authService.signIn(
+                email: emailController.text,
+                password: passwordController.text,
               );
-            }
-          },
-        )
+            },
+            child: Text('Sign in'),
+          ),
+        ],
+      ),
     );
   }
+}
 
+class HomePage extends StatelessWidget {
+  final AuthenticationService authService;
 
-  class MyHomePage extends StatefulWidget {
-  MyHomePage({key key, this.title}) : super(key:key);
-
-  final String title;
+  HomePage({Key key, this.authService});
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          children: [
+            Text('HOME'),
+            ElevatedButton(
+              onPressed: () {
+                authService.signOut();
+              },
+              child: Text('Log out'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
-
-  class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter(){
-  DatabaseReference _testRef = FirebaseDatabase.instance.reference().child("test");
-  _testRef.set("Hello world ${Random().nextInt(100)}");
-  setState(() {
-  _counter++;
-  });
-  }
-
-
 }
