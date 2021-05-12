@@ -1,50 +1,47 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_project/sign-in.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_project/authentication_servce.dart';
+import 'package:mongol/mongol.dart';
 
-import 'home_page.dart';
-
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+void main() {
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider<AuthenticationService>(
-          create: (_) => AuthenticationService(FirebaseAuth.instance),
-        ),
-        StreamProvider(
-          create: (context) => context.read<AuthenticationService>().authStateChanges,
-        )
-      ],
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        home: AuthenticationWrapper(),
-      ),
-    );
+    return MaterialApp(home: HomePage());
   }
 }
 
-class AuthenticationWrapper extends StatelessWidget {
+class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final firebaseUser = context.watch<User>();
-
-    if (firebaseUser != null) {
-      return HomePage();
-    }
-    return SignInPage();
+    return Scaffold(
+        body: Center(
+      child: new Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          new Container(
+              width: 190.0,
+              height: 190.0,
+              decoration: new BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: new DecorationImage(
+                      fit: BoxFit.fill,
+                      image: new NetworkImage("assets/images/Me.JPG")))),
+          new Text("Anar", textScaleFactor: 1.5),
+          Container(
+              height: 400,
+              width: 300,
+              child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: MongolText('ᠮᠢᠨᠦ ᠨᠡᠷ᠎ᠡ ᠶᠢ ᠠᠨᠠᠷ ᠭᠡᠳᠡᠭ᠃ ᠪᠢ 22 ᠨᠠᠰᠤᠲᠠᠢ᠃ ᠣᠳᠣ ᠪᠠᠷ ᠪᠢ ᠠᠩᠭᠯᠢ᠂ ᠣᠷᠣᠰ᠂ ᠬᠢᠲᠠᠳ ᠬᠡᠯᠡ ᠲᠡᠢ ᠪᠢᠯᠡ᠃ ᠣᠳᠣ ᠮᠡᠳᠡᠭᠡᠯᠡᠯ ᠲᠧᠭᠨᠣᠯᠣᠭᠢ ᠶᠢᠨ ᠮᠡᠷᠭᠡᠵᠢᠯ ᠢᠶᠡᠷ 3 ᠳ᠋ᠤᠭᠠᠷ ᠺᠦᠷᠰ ᠲᠦ ᠰᠤᠷᠠᠳᠠᠭ᠃',
+                      style: TextStyle(
+                          fontFamily: 'MongolianScript', fontSize: 30))))
+        ],
+      ),
+    ));
   }
 }
